@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+  namespace: laravel
+  labels:
+    app: db
+spec:
+  selector:
+    matchLabels:
+      app: db 
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels: 
+        app: db
+    spec: 
+      containers:
+      - name: db
+        image: mysql:8.4
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        - name: MYSQL_DATABASE
+          value: laravel
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+---
+apiVersion: v1 
+kind: Service
+metadata:
+  name: db-svc
+  namespace: laravel
+spec:
+  selector:
+    app: db
+  ports:
+  - port: 3306
+    targetPort: 3306
+
