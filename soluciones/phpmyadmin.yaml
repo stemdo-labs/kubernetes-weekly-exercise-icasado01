@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: phpmyadmin
+  labels:
+    app: phpmyadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phpmyadmin
+  template:
+    metadata:
+      labels:
+        app: phpmyadmin
+    spec:
+      containers:
+      - name: phpmyadmin
+        image: phpmyadmin:5.2.1
+        ports:
+        - containerPort: 80
+        env:
+          - name: PMA_HOST
+            value: db-svc.laravel.svc.cluster.local
+          - name: PMA_PORT
+            value: "3306"
+          - name: PMA_USER
+            valueFrom:
+              secretKeyRef:
+                name: php-secret
+                key: user
+          - name: PMA_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: php-secret
+                key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin-svc
+  namespace: phpmyadmin
+spec:
+  type: NodePort
+  selector:
+    app: phpmyadmin
+  ports:
+  - port: 80
+    targetPort: 80
